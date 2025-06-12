@@ -180,7 +180,6 @@
         // Function to parse the questions from the provided text format
         function parseQuestions(text) {
             const questions = [];
-            // Remove potential leading/trailing whitespace and empty parts from splitting
             const rawQuestions = text.split('+++++').filter(q => q.trim() !== '');
 
             console.log(`[Парсер] Найдено блоков с вопросами (разделитель +++++): ${rawQuestions.length}`);
@@ -190,7 +189,7 @@
 
                 if (parts.length <= 1) {
                     console.warn(`[Парсер] Пропущен вопрос #${index + 1}: Отсутствуют разделители "====" между вопросом и ответами. Блок:`, rawQ.substring(0, 100) + '...');
-                    return; // Skip this question if no options found
+                    return;
                 }
 
                 const questionText = parts[0];
@@ -210,9 +209,10 @@
                 });
 
                 if (foundCorrectMarker && correctOption !== null) {
+                    // Store a copy of options that can be shuffled later
                     questions.push({
                         question: questionText,
-                        options: formattedOptions,
+                        options: [...formattedOptions], // Create a shallow copy for shuffling
                         correctAnswer: correctOption
                     });
                 } else {
@@ -1583,6 +1583,7 @@
         const restartQuizBtn = document.getElementById('restart-quiz-btn');
         const scoreDisplay = document.getElementById('score-display');
 
+        // Re-usable shuffle function
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -1616,11 +1617,15 @@
             totalQElement.textContent = shuffledQuestions.length;
             questionNumberElement.style.display = 'block';
 
-            currentQuestion.options.forEach((option, index) => {
+            // Shuffle the options for the current question
+            const shuffledOptions = [...currentQuestion.options]; // Create a copy to shuffle
+            shuffleArray(shuffledOptions); // Shuffle this copy
+
+            shuffledOptions.forEach((option, index) => {
                 const button = document.createElement('button');
                 button.classList.add('option-button');
                 button.textContent = option;
-                button.dataset.index = index;
+                button.dataset.index = index; // Keep original index if needed, but not used for logic here
                 button.addEventListener('click', () => selectOption(button));
                 optionsContainer.appendChild(button);
             });
